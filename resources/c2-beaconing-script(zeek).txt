@@ -1,0 +1,48 @@
+@load base/protocols/conn
+
+module BeaconDetection;
+
+export {
+    redef enum Notice::Type += {
+        Beaconing_Detected
+    };
+}
+
+# Track connection intervals
+global conn_intervals: table[addr] of vector of interval;
+
+event connection_state_remove(c: connection) {
+    if (c$id$orig_h !in Site::local_nets)
+        return;
+    
+    local orig = c$id$orig_h;
+    
+    if (orig !in conn_intervals)
+        conn_intervals[orig] = vector();
+    
+    conn_intervals[orig] += c$duration;
+    
+    # If we have 10+ connections, check for beaconing pattern
+    if (|conn_intervals[orig]| >= 10) {
+        # Check if intervals are consistent (within 20% variance)
+        local avg_interval = 0.0;
+        for (i in conn_intervals[orig])
+            avg_interval += interval_to_double(conn_intervals[orig][i]);
+        avg_interval = avg_interval / |conn_intervals[orig]|;
+        
+        local variance = 0.0;
+        for (i in conn_intervals[orig]) {
+            local diff = interval_to_double(conn_intervals[orig][i]) - avg_interval;
+            variance += diff * diff;
+        }
+        variance = sqrt(variance / |conn_intervals[orig]|);
+        
+        if (variance / avg_interval < 0.2) {
+            NOTICE([$note=Beaconing_Detected,
+                    $msg=fmt("Possible C2 beaconing detected from %s", orig),
+                    $src=orig]);
+        }
+        
+        delete conn_intervals[orig];
+    }
+}

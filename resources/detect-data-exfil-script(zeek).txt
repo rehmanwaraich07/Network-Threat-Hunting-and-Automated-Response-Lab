@@ -1,0 +1,27 @@
+@load base/protocols/http
+
+module ExfilDetection;
+
+export {
+    redef enum Notice::Type += {
+        Large_Upload_Detected
+    };
+    
+    const upload_threshold = 10000000;  # 10MB
+}
+
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) {
+    if (!is_orig)  # Only look at client uploads
+        return;
+    
+    if (c$id$orig_h !in Site::local_nets)
+        return;
+    
+    if (stat$body_length > upload_threshold) {
+        NOTICE([$note=Large_Upload_Detected,
+                $msg=fmt("Large upload detected: %d bytes from %s to %s", 
+                         stat$body_length, c$id$orig_h, c$id$resp_h),
+                $src=c$id$orig_h,
+                $conn=c]);
+    }
+}
