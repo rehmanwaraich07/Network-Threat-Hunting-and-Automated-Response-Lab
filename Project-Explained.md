@@ -237,7 +237,6 @@ Additional outcomes:
 - **Threat Hunting** – Proactively validating detections against custom C2 and scripted attack scenarios
 - **SIEM Administration** – Splunk index design, data onboarding, and correlation searches
 - **SOAR Development** – Tines story design with human-in-the-loop automation
-- **Threat Intelligence Integration** – (Designed) enrichment workflow using AbuseIPDB and VirusTotal
 - **Red Team Simulation** – Python C2 and PowerShell agent for realistic adversary emulation
 - **Automated Response** – PowerShell Remoting and Windows Firewall rule automation
 - **Alert Tuning** – Reducing false positives via rule and baseline refinement
@@ -260,11 +259,6 @@ Additional outcomes:
   - PowerShell Remoting (WinRM)
   - Windows Firewall
   - Slack + Webhooks
-
-- **Threat Intelligence (Design)**
-  - AbuseIPDB API
-  - VirusTotal API
-  - MITRE ATT&CK Framework
 
 - **Infrastructure**
   - Ubuntu 24.04 LTS (monitoring host)
