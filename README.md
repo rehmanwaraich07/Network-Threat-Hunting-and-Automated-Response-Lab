@@ -1,4 +1,4 @@
-# Network Threat Hunting & Automated Response Lab
+# Network-Security-Monitoring-and-Threat-Hunting-Lab
 
 I built an advanced **network threat hunting and automated response lab** that detects sophisticated attacks like C2
 beaconing, DNS tunneling, and data exfiltration in real time using a **multi-layered detection and SOAR pipeline**.
