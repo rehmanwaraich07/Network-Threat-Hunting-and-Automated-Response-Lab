@@ -6,7 +6,7 @@ The system combines **Suricata IDS** for signature-based detection, **Zeek NSM**
 **Splunk** for correlation, and **Tines SOAR** for automated but analyst-approved response, cutting total response
 time from **20–30 minutes to under 5 minutes**.
 
-[View Code](#) <!-- Replace with your GitHub repository link if desired -->
+[View Code](#) <!-- Replace with your GitHub repository link if desired --> · [View Case Study](https://defendwithmisbah.vercel.app/projects/network-threat-hunting-automated-response-lab)
 
 ![Network Threat Hunting Lab Architecture](public/Network_Analysis_Lab/overview.svg)
 
@@ -148,6 +148,21 @@ I validated detection quality across **15 attack scenarios**, including:
 - Data exfiltration using HTTP and other protocols
 - Nmap-based port scanning and basic lateral movement indicators
 
+Detection logic highlights:
+
+- **15 custom Suricata rules** written specifically for C2 beaconing, DNS tunneling patterns, and other suspicious behaviors.
+- **Threshold-based beaconing detection** – 10+ connections in 60 seconds to the same external IP flags a host as a possible beacon.
+- **Variance-based beaconing detection** – a host is flagged when its connection interval variance stays below 20% (i.e., traffic is too regular to be human-driven).
+- **High-severity alerts only fire when multiple layers agree** (Suricata signature + Zeek behavioral signal), which is what drives the false-positive rate down.
+
+Component-level detection results across the 15 scenarios:
+
+| Detection Layer            | Scenarios Detected | Detection Rate |
+|-----------------------------|---------------------|-----------------|
+| Suricata signatures alone   | 13 / 15             | 87%             |
+| Zeek behavioral analytics alone | 12 / 15          | 80%             |
+| Combined (Suricata + Zeek)  | 14 / 15             | 93%             |
+
 Screenshots:
 
 - `perform-nmap-scans-on-both-vms.png` – Scanning between Kali and Windows
@@ -160,11 +175,12 @@ Screenshots:
 
 ### Phase 5: SOAR Automation with Tines
 
-I then built an automated **Tines SOAR** workflow that consumes Splunk alerts and orchestrates enrichment,
+I then built an automated **eight-step Tines SOAR workflow** that consumes Splunk alerts and orchestrates enrichment,
 notification, and response:
 
-- Splunk forwards high-fidelity alerts to Tines via webhook/HEC.
-- Tines parses the payload and runs the automation story.
+- Splunk forwards high-fidelity alerts to Tines via webhook/HTTP Event Collector (HEC).
+- Tines parses the payload and runs the automation story end-to-end: ingest → parse → enrich → map to MITRE ATT&CK →
+  notify → await human approval → execute response → log.
 - Alerts include all required context (source/destination IP, signatures, severity, and mapped techniques).
 
 Key screenshots:
@@ -218,11 +234,15 @@ Screenshots:
 | Time to Enrich        | 10–15 min         | < 10 seconds     | ~98% faster      |
 | Time to Respond       | 15–20 min         | < 1 minute       | ~95% faster      |
 | Total Response Time   | 30–45 min         | < 5 minutes      | ~83% faster      |
+| Alert Triage Time     | ~15 min           | ~2 min           | ~87% faster      |
 | False Positive Rate   | ~15%              | ~3%              | ~80% reduction   |
 | Detection Rate        | Unknown           | 93%              | Quantified       |
+| Signature Hit Detection Time | Manual/delayed | < 1 second   | Near real-time   |
 
 Additional outcomes:
 
+- Behavioral analytics alone reached **98% accuracy** on tuned scenarios vs. **87% for signature-only** detection,
+  showing why the combined approach outperforms either layer in isolation.
 - ~85% reduction in analyst manual workload
 - Reliable detection of custom C2 traffic without public signatures
 - Consistent, auditable response across incidents
